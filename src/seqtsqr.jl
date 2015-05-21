@@ -1,4 +1,3 @@
-
 type SeqTSQRQ
   Q::StridedMatrix
   tau::Array{Float64, 1}
@@ -62,46 +61,6 @@ function seqtsqr( A::StridedMatrix{Float64}, cs::Int64 )
   end
 
   return R
-end
-
-# Do TSQR with reduction for diagonal plus low rank
-function seqtsqr!( A::StridedMatrix{Float64}, nb::Int64, U::StridedMatrix,
-                  B::Diagonal )
-  m,n = size(A)
-  k   = size(U)[2]
-  m1 = min(nb,m)
-
-  # Allocate space
-  work = Array(Float64, max(n,k))
-  A2 = zeros( nb, n )
-  t = Array(Float64, n)
-
-  # Copy first block of A to temporary space
-  for j = 1:n
-    @simd for i = 1:m1
-      @inbounds A2[i,j] = A[i,j]
-    end
-  end
-  Asub = sub(A2, 1:m1, :)
-  Base.LinAlg.LAPACK.geqrf!( Asub, work )
-  R = triu(sub(A2,1:n,:))
-
-  for i = m1+1:nb:m
-    m1 = min(i+nb-1,m) - i + 1
-    for j = 1:n
-      @simd for l = 1:m1
-        @inbounds A2[l,j] = A[i+l-1,j]
-      end
-    end
-    tpqrf!( m1, n, pointer(R), stride(R,2), pointer(A2), stride(A2,2), pointer(t), pointer(work))
-  end
-
-  Base.LinAlg.BLAS.trsm!( 'R', 'U', 'N', 'N', 1.0, R, A )
-  U2 = Base.LinAlg.BLAS.gemm( 'T', 'N', A, U )
-  scale!(sqrt(B.diag), A)
-  M2 = Base.LinAlg.BLAS.syrk( 'U', 'T', 1.0, A )
-
-  return R, U2, M2
 end
 
 # nb must be the same as the input to seqtsqr!

@@ -1,18 +1,17 @@
 module TallSkinnyQR
 
-export shtsqr!, 
+export tsqr!, 
        seqtsqr!, 
-       constructQ!
+       constructQ!,
+       CBQR!,
+       SCBQR!,
+       SCBQRT!
 
 # package code goes here
 
 include("seqtsqr.jl")
-include("shtsqr.jl")
+include("tsqr.jl")
 include("helpers.jl")
 include("btsqr.jl")
-include("tsqr.jl")
-include("blockmatrix.jl")
-include("sparsemul.jl")
-include("blktsqr.jl")
 
 end # module
